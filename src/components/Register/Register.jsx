@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import auth from "../../firebase/firebase.cofig";
 import { useState } from "react";
 
@@ -12,6 +12,7 @@ const Register = () => {
         e.preventDefault();
         const email = e.target.email.value;
         const password = e.target.password.value;
+        const accepted = e.target.terms.checked;
         console.log(email, password);
 
         if (password.length < 6) {
@@ -22,7 +23,10 @@ const Register = () => {
             setRegisterError('Your password should have at least one upper case characters.')
             return;
         }
-
+        else if (!accepted) {
+            setRegisterError('Accept our terms and conditions!')
+            return;
+        }
         setRegisterError('');
         setSuccess('');
         // create user
@@ -30,6 +34,10 @@ const Register = () => {
             .then(result => {
                 console.log(result.user);
                 setSuccess('Successfully')
+                sendEmailVerification(result.user)
+                    .then(()=> {
+                        alert('please check your email and verify your account')
+                    })
             })
             .catch(error => {
                 console.error(error);
@@ -49,7 +57,10 @@ const Register = () => {
                         placeholder="Password"
                         name="password" id=""
                         required />
-                        <span onClick={()=> setShowPassword (!showPassword)}> Show</span>
+                    <span onClick={() => setShowPassword(!showPassword)}> Show</span>
+                    <br />
+                    <input type="checkbox" name="terms" id="terms" />
+                    <label className="ml-2" htmlFor="terms">Accept our Terms and conditions</label>
                     <br />
                     <input className="btn btn-secondary mb-4 w-3/4 py-2 px-4" type="submit" value="Register" />
                 </form>
